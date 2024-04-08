@@ -1,18 +1,7 @@
-import React, {useEffect, useInsertionEffect, useState} from "react";
-
+import React, { useEffect, useInsertionEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
-
-import {
-  dataCenterProxyRadio,
-  ispProxy,
-  pricingTabs,
-  rangePoints,
-  DISCOUNTS,
-  MONTHVALUE,
-} from "@/utils/constants";
-
+import { dataCenterProxyRadio, ispProxy, pricingTabs, rangePoints, DISCOUNTS, MONTHVALUE } from "@/utils/constants";
 import { getRoundOffValue } from "@/utils/DcpFormula";
-import { calculateResedentialProxy } from "@/utils/ResedentialProxiesCalc";
 import RadialChart from "@/components/radialChart";
 import Button from "@/components/Button";
 import DSP from "@/components/DSP";
@@ -24,7 +13,10 @@ export interface HelloWorldProps {
   className?: string;
   verbose?: boolean;
 }
-
+ const calculateResidentialProxy = (input: number): number => {
+  // Example calculation logic, replace with your actual calculation
+  return input * 2; // Just a placeholder calculation
+};
 const renderDCPSliderMarks = () => {
   const marks: {
     [key: string]: {
@@ -36,13 +28,13 @@ const renderDCPSliderMarks = () => {
     const discount = DISCOUNTS[value];
     marks[value] = {
       label: (
-        <div className="mark-label">
-          <div className="duration">
-            <p>{months as string}</p>
-            <p>{months === 1 ? "MONTH" : "MONTHS"}</p>
+          <div className="mark-label">
+            <div className="duration">
+              <p>{months as string}</p>
+              <p>{months === 1 ? "MONTH" : "MONTHS"}</p>
+            </div>
+            {value !== "10" && <span className="discount">{discount} %</span>}
           </div>
-          {value !== "10" && <span className="discount">{discount} %</span>}
-        </div>
       ),
     };
   }
@@ -50,23 +42,17 @@ const renderDCPSliderMarks = () => {
   return marks;
 };
 
-const PricingComponent = ({
-  className,
-}: HelloWorldProps) => {
+const PricingComponent = ({ className }: HelloWorldProps) => {
   const isSmallMobile = useMediaQuery({ maxWidth: 390 });
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const isSmallDesktop = useMediaQuery({ minWidth: 1024, maxWidth: 1439 });
   const isLargeDesktop = useMediaQuery({ minWidth: 1440 });
   const [selectedTab, setSelectedTab] = useState(pricingTabs.DataCenterProxies);
-  const [resedentialInput, setResidentialInput] = useState(1);
-  const [resedentialProxyCalculated, setresedentialProxyCalculated] = useState<
-    any | 0
-  >(calculateResedentialProxy(Number(resedentialInput)));
+  const [residentialInput, setResidentialInput] = useState(1);
+  const [residentialProxyCalculated, setResidentialProxyCalculated] = useState<any | 0>(calculateResidentialProxy(Number(residentialInput)));
   useInsertionEffect(() => {
-    // Your action here...
     console.log('Component inserted into the DOM');
-    // Perform any necessary actions here when the component is inserted into the DOM
   });
   const [ispProxyInput, setIspProxyInput] = useState({
     country: "us",
@@ -81,11 +67,7 @@ const PricingComponent = ({
   const [dcpCountry, setDcpCountry] = useState("us");
 
   const [selected, setSelected] = useState("us");
-  const [dspRadio, setDspRadio] = useState(
-    dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio]
-      .radio[0]
-  );
-
+  const [dspRadio, setDspRadio] = useState(dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio].radio[0]);
   const [dspMonths, setDspMonths] = useState<any | "">("threeMonthDisc");
   const [dspValue, setDspValue] = useState(5);
   const [dspPackage, setDspPackage] = useState<any | "">("starterDisc");
@@ -98,11 +80,7 @@ const PricingComponent = ({
 
   const onDspCountryChange = (code: string) => {
     setDcpCountry(code.toLowerCase());
-    setDspRadio(
-      dataCenterProxyRadio[
-        code.toLowerCase() as keyof typeof dataCenterProxyRadio
-      ]?.radio[0]
-    );
+    setDspRadio(dataCenterProxyRadio[code.toLowerCase() as keyof typeof dataCenterProxyRadio]?.radio[0]);
   };
 
   useEffect(() => {
@@ -111,49 +89,21 @@ const PricingComponent = ({
     let discountTwo = 0;
 
     if (dspMonths !== "oneMonthDisc") {
-      const baseValue = Number(
-        dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][
-          dspRadio
-        ]["basicPrice"] *
-          dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][
-            dspRadio
-          ][dspMonths]
-      );
+      const baseValue = Number(dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][dspRadio]["basicPrice"] * dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][dspRadio][dspMonths]);
 
-      discount = getRoundOffValue(
-        dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][
-          dspRadio
-        ]["basicPrice"] - baseValue
-      );
+      discount = getRoundOffValue(dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][dspRadio]["basicPrice"] - baseValue);
     } else {
-      discount =
-        dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][
-          dspRadio
-        ]["basicPrice"];
+      discount = dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][dspRadio]["basicPrice"];
     }
     if (dspPackage !== "starterDisc") {
-      discountTwo =
-        discount *
-        Number(
-          dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][
-            dspRadio
-          ][dspPackage]
-        );
+      discountTwo = discount * Number(dataCenterProxyRadio[dcpCountry as keyof typeof dataCenterProxyRadio][dspRadio][dspPackage]);
 
       finalValue = getRoundOffValue(discount - discountTwo);
     } else {
       finalValue = discount;
     }
 
-    setDspCalculatedValue(
-      Number(
-        (
-          Number(finalValue) *
-          Number(dspValue) *
-          Number(MONTHVALUE[dspMonths])
-        ).toFixed(2)
-      )
-    );
+    setDspCalculatedValue(Number((Number(finalValue) * Number(dspValue) * Number(MONTHVALUE[dspMonths])).toFixed(2)));
   }, [dspRadio, dspMonths, dspValue, dcpCountry, dspPackage]);
 
   const handleChangeResidentialProxies = ({ target: { value } }: any) => {
@@ -161,7 +111,7 @@ const PricingComponent = ({
 
     if (re.test(value) || value == "") {
       setResidentialInput(value);
-      setresedentialProxyCalculated(calculateResedentialProxy(Number(value)));
+      setResidentialProxyCalculated(calculateResidentialProxy(Number(value)));
     }
   };
 
@@ -183,20 +133,10 @@ const PricingComponent = ({
   useEffect(() => {
     let finalValue = 0;
     let discount = 0;
-    const baseValue =
-      ispProxyValue *
-      ispProxy[ispProxyInput.country as keyof typeof ispProxy][
-        ispProxyInput.mainType
-      ][ispProxyInput.length];
+    const baseValue = ispProxyValue * ispProxy[ispProxyInput.country as keyof typeof ispProxy][ispProxyInput.mainType][ispProxyInput.length];
 
     if (ispProxyInput.proxyType !== "starterDisc") {
-      discount =
-        baseValue *
-        Number(
-          ispProxy[ispProxyInput.country as keyof typeof ispProxy][
-            ispProxyInput.mainType
-          ][ispProxyInput.proxyType]
-        );
+      discount = baseValue * Number(ispProxy[ispProxyInput.country as keyof typeof ispProxy][ispProxyInput.mainType][ispProxyInput.proxyType]);
 
       finalValue = baseValue - discount;
     } else {
@@ -266,17 +206,11 @@ const PricingComponent = ({
 
   const getPerMonthValue = (tab: string) => {
     if (tab === "isp") {
-      return Number(
-        (
-          Number(ispCalculatedValue) / Number(MONTHVALUE[ispProxyInput.length])
-        ).toFixed(2)
-      );
+      return Number((Number(ispCalculatedValue) / Number(MONTHVALUE[ispProxyInput.length])).toFixed(2));
     }
 
     if (tab === "dataCenter") {
-      return Number(
-        (Number(dspCalculatedValue) / Number(MONTHVALUE[dspMonths])).toFixed(2)
-      );
+      return Number((Number(dspCalculatedValue) / Number(MONTHVALUE[dspMonths])).toFixed(2));
     }
 
     return 0;
@@ -310,7 +244,7 @@ const PricingComponent = ({
       case pricingTabs.ResidentialProxies:
         return (
             <Residential
-                resedentialInput={resedentialInput}
+                resedentialInput={residentialInput}
                 handleChangeResidentialProxies={handleChangeResidentialProxies}
             />
         );
@@ -327,249 +261,146 @@ const PricingComponent = ({
             />
         );
       default:
-        return null; // Handle default case if needed
+        return null;
     }
   };
   return (
-    <section className={`pricing-header ${className}`}>
-      <div className="section-container">
-        <div className="pricing-row">
-          <div className="left-col">
-            <div className="proxy-types two-cols">
-              <div className="lable-box">
-                <label>Proxy Type:</label>
-              </div>
-              <div className="content-box">
-                <div className="proxy_side">
-                  <button
-                      className={`btn-proxy ${
-                          selectedTab == pricingTabs.DataCenterProxies && "active"
-                      }`}
-                      onClick={() => {
-                        setSelectedTab(pricingTabs.DataCenterProxies);
-                      }}
-                  >
-                    Data Center Proxies
-                  </button>
-                  <button
-                      className={`btn-proxy ${
-                          selectedTab == pricingTabs.ResidentialProxies && "active"
-                      }`}
-                      onClick={() => {
-                        setSelectedTab(pricingTabs.ResidentialProxies);
-                      }}
-                  >
-                    Residential Proxies
-                  </button>
-                  <button
-                      className={`btn-proxy ${
-                          selectedTab == pricingTabs.ISPProxies && "active"
-                      }`}
-                      onClick={() => {
-                        setSelectedTab(pricingTabs.ISPProxies);
-                      }}
-                  >
-                    ISP Proxies
-                  </button>
+      <section className={`pricing-header ${className}`}>
+        <div className="section-container">
+          <div className="pricing-row">
+            <div className="left-col">
+              <div className="proxy-types two-cols">
+                <div className="lable-box">
+                  <label>Proxy Type:</label>
+                </div>
+                <div className="content-box">
+                  <div className="proxy_side">
+                    <button
+                        className={`btn-proxy ${selectedTab == pricingTabs.DataCenterProxies && "active"}`}
+                        onClick={() => setSelectedTab(pricingTabs.DataCenterProxies)}
+                    >
+                      Data Center Proxies
+                    </button>
+                    <button
+                        className={`btn-proxy ${selectedTab == pricingTabs.ResidentialProxies && "active"}`}
+                        onClick={() => setSelectedTab(pricingTabs.ResidentialProxies)}
+                    >
+                      Residential Proxies
+                    </button>
+                    <button
+                        className={`btn-proxy ${selectedTab == pricingTabs.ISPProxies && "active"}`}
+                        onClick={() => setSelectedTab(pricingTabs.ISPProxies)}
+                    >
+                      ISP Proxies
+                    </button>
+                  </div>
                 </div>
               </div>
+              {renderComponentBasedOnTab()}
             </div>
-            {renderComponentBasedOnTab()}
-          </div>
-          <div className="right-col">
-            <div className="chart-wrapper">
-              <div className="chart-content">
-                {(selectedTab == pricingTabs.DataCenterProxies &&
-                    dspValue > 5000) ||
-                (selectedTab == pricingTabs.ISPProxies &&
-                    ispProxyValue > 5000) ||
-                (selectedTab == pricingTabs.ResidentialProxies &&
-                    resedentialInput > 5000) ? (
-                    <div className="contact-us">
-                      <p className="contact-us-text">
-                        Get a custom plan for your business and save upto{" "}
-                        <em>
-                          <strong>30%</strong>
-                        </em>{" "}
-                        or more on orders of{" "}
-                        <em>
-                          <strong>5000+</strong>
-                        </em>{" "}
-                        {selectedTab == pricingTabs.ResidentialProxies
-                            ? "GBs."
-                            : "proxies."}
-                      </p>
-                      <a
-                          href="https://rayobyte.com/contact-us/"
-                          className="contact-us-btn"
-                          target="_blank"
-                      >
-                        Contact Us
-                      </a>
+            <div className="right-col">
+              <div className="chart-wrapper">
+                <div className="chart-content">
+                  {(selectedTab == pricingTabs.DataCenterProxies && dspValue > 5000) ||
+                  (selectedTab == pricingTabs.ISPProxies && ispProxyValue > 5000) ||
+                  (selectedTab == pricingTabs.ResidentialProxies && residentialInput > 5000) ? (
+                      <div className="contact-us">
+                        <p className="contact-us-text">
+                          Get a custom plan for your business and save upto{" "}
+                          <em>
+                            <strong>30%</strong>
+                          </em>{" "}
+                          or more on orders of{" "}
+                          <em>
+                            <strong>5000+</strong>
+                          </em>{" "}
+                          {selectedTab == pricingTabs.ResidentialProxies ? "GBs." : "proxies."}
+                        </p>
+                        <a
+                            href="https://rayobyte.com/contact-us/"
+                            className="contact-us-btn"
+                            target="_blank"
+                        >
+                          Contact Us
+                        </a>
+                      </div>
+                  ) : (
+                      <>
+                        <h1>
+                          <sup>$</sup>
+                          {selectedTab == pricingTabs.ResidentialProxies && Number(residentialProxyCalculated).toFixed(2)}
+                          {selectedTab == pricingTabs.ISPProxies && Number(ispCalculatedValue).toFixed(2)}
+                          {selectedTab == pricingTabs.DataCenterProxies && Number(dspCalculatedValue).toFixed(2)}
+                        </h1>
+                        <hr />
+                        {selectedTab === pricingTabs.ResidentialProxies ? (
+                            <div>
+                              <p>{residentialInput} GB</p>
+                            </div>
+                        ) : (
+                            <div className="chart-sub-content">
+                              <div className="col-1">
+                                <p>
+                                  {selectedTab == pricingTabs.ResidentialProxies && (
+                                      <>
+                                        {" "}
+                                        ${residentialProxyCalculated ? residentialProxyCalculated / Number(residentialInput) : "-"}
+                                        /GB
+                                      </>
+                                  )}
+                                  {selectedTab == pricingTabs.ISPProxies && (
+                                      <>
+                                        {" "}
+                                        ${ispCalculatedValue ? Number(ispCalculatedValue / (Number(ispProxyValue) * MONTHVALUE[ispProxyInput.length])).toFixed(2) : "-"}
+                                        /IP
+                                      </>
+                                  )}
+                                  {selectedTab == pricingTabs.DataCenterProxies && (
+                                      <>
+                                        {typeof dspCalculatedValue === "number" && dspCalculatedValue ? Number(dspCalculatedValue / (Number(dspValue) * MONTHVALUE[dspMonths])).toFixed(2) : "--"}
+                                        /IP
+                                      </>
+                                  )}
+                                </p>
+                                <p>{dspValue} IPs</p>
+                                <p>${getPerMonthValue(selectedTab === pricingTabs.DataCenterProxies ? "dataCenter" : selectedTab === pricingTabs.ISPProxies ? "isp" : "dataCenter")}/Mo</p>
+                              </div>
+                              <div className="col-2">
+                                <p className="radio-label">
+                                  {selectedTab == pricingTabs.DataCenterProxies ? dspRadio : selectedTab == pricingTabs.ISPProxies && ispProxyInput.mainType}
+                                </p>
+
+                                <p>{renderMonthsForChart[dspMonths as keyof typeof renderMonthsForChart]} </p>
+                                {selectedTab !== pricingTabs.ResidentialProxies && <p className="country-name">{selectedTab == pricingTabs.DataCenterProxies ? dcpCountry : ispProxyInput.country}</p>}
+                              </div>
+                            </div>
+                        )}
+                      </>
+                  )}
+                </div>
+                {window !== undefined && (
+                    <div id="chart">
+                      <RadialChart
+                          progress={selectedTab == pricingTabs.ResidentialProxies ? residentialProxyCalculated * 0.1 : selectedTab == pricingTabs.ISPProxies ? renderISPProxiesChartValue() : renderDCPChartValue()}
+                          color="#7c8585"
+                          progressColor="#06b6bf"
+                          dimension={renderChartDimensions()}
+                      />
                     </div>
-                ) : (
-                    <>
-                      <h1>
-                        <sup>$</sup>
-                        {selectedTab == pricingTabs.ResidentialProxies &&
-                            Number(resedentialProxyCalculated).toFixed(2)}
-                        {selectedTab == pricingTabs.ISPProxies &&
-                            Number(ispCalculatedValue).toFixed(2)}
-
-                        {selectedTab == pricingTabs.DataCenterProxies &&
-                            Number(dspCalculatedValue).toFixed(2)}
-                      </h1>
-                      <hr/>
-                      {selectedTab === pricingTabs.ResidentialProxies ? (
-                          <div>
-                            <p>{resedentialInput} GB</p>
-                          </div>
-                      ) : (
-                          <div className="chart-sub-content">
-                            <div className="col-1">
-                              <p>
-                                {selectedTab == pricingTabs.ResidentialProxies && (
-                                    <>
-                                      {" "}
-                                      $
-                                      {resedentialProxyCalculated
-                                          ? resedentialProxyCalculated /
-                                          Number(resedentialInput)
-                                          : "-"}
-                                      /GB
-                                    </>
-                                )}
-                                {selectedTab == pricingTabs.ISPProxies && (
-                                    <>
-                                      {" "}
-                                      $
-                                      {ispCalculatedValue
-                                          ? Number(
-                                              ispCalculatedValue /
-                                              (Number(ispProxyValue) *
-                                                  MONTHVALUE[ispProxyInput.length])
-                                          ).toFixed(2)
-                                          : "-"}
-                                      /IP
-                                    </>
-                                )}
-                                {selectedTab == pricingTabs.DataCenterProxies && (
-                                    <>
-                                      {typeof dspCalculatedValue === "number" &&
-                                      dspCalculatedValue
-                                          ? Number(
-                                              dspCalculatedValue /
-                                              (Number(dspValue) *
-                                                  MONTHVALUE[dspMonths])
-                                          ).toFixed(2)
-                                          : "--"}
-                                      /IP
-                                    </>
-                                )}
-                              </p>
-                              <p>{dspValue} IPs</p>
-                              <p>
-                                $
-                                {getPerMonthValue(
-                                    selectedTab === pricingTabs.DataCenterProxies
-                                        ? "dataCenter"
-                                        : selectedTab === pricingTabs.ISPProxies
-                                            ? "isp"
-                                            : "dataCenter"
-                                )}
-                                /Mo
-                              </p>
-                            </div>
-                            <div className="col-2">
-                              <p className="radio-label">
-                                {selectedTab == pricingTabs.DataCenterProxies
-                                    ? dspRadio
-                                    : selectedTab == pricingTabs.ISPProxies &&
-                                    ispProxyInput.mainType}
-                              </p>
-
-                              <p>{renderMonthsForChart[dspMonths as keyof typeof renderMonthsForChart]} </p>
-                              {selectedTab !== pricingTabs.ResidentialProxies && (
-                                  <p className="country-name">
-                                    {selectedTab == pricingTabs.DataCenterProxies
-                                        ? dcpCountry
-                                        : ispProxyInput.country}
-                                  </p>
-                              )}
-                            </div>
-                          </div>
-                      )}
-                    </>
                 )}
               </div>
-              {window !== undefined && (
-                  <div id="chart">
-                    <RadialChart
-                        progress={
-                          selectedTab == pricingTabs.ResidentialProxies
-                              ? resedentialProxyCalculated * 0.1
-                              : selectedTab == pricingTabs.ISPProxies
-                                  ? renderISPProxiesChartValue()
-                                  : renderDCPChartValue()
-                        }
-                        color="#7c8585"
-                        progressColor="#06b6bf"
-                        dimension={renderChartDimensions()}
-                    />
-                  </div>
+              {((selectedTab == pricingTabs.DataCenterProxies && dspValue <= 5000) ||
+                  (selectedTab == pricingTabs.ISPProxies && ispProxyValue <= 5000) ||
+                  (selectedTab == pricingTabs.ResidentialProxies && residentialInput <= 5000)) && (
+                  <Button
+                      title="Buy Now"
+                      link={selectedTab == pricingTabs.ResidentialProxies ? "https://dashboard.residential.rayobyte.com/user-area/#/signup" : `https://dashboard.proxy.rayobyte.com/purchase?country=${selectedTab === pricingTabs.DataCenterProxies ? dcpCountry : selected}&category=${selectedTab === pricingTabs.DataCenterProxies ? dspRadio === "semi-dedicated" ? "semi-3" : "dedicated" : ispProxyInput.mainType === "dedicated" ? "dedicated" : "semi-3"}&quantity=${selectedTab === pricingTabs.DataCenterProxies ? dspValue : ispProxyValue}&billingCycle=${selectedTab === pricingTabs.DataCenterProxies ? dspMonths === "oneMonthDisc" ? "monthly" : dspMonths === "threeMonthDisc" ? "quarterly" : dspMonths === "sixMonthDisc" ? "semiannually" : "annually" : ispProxyInput.length === "oneMonthDisc" ? "monthly" : ispProxyInput.length === "threeMonthDisc" ? "quarterly" : ispProxyInput.length === "sixMonthDisc" ? "semiannually" : "annually"}&_gl=1%2a116hez4%2a_ga%2aNzExNzM2NzMxLjE2NzYzMTA5NzQ.%2a_ga_TK61YTK3F7%2aMTY3NzUwNzk2Ni4yNS4xLjE2Nzc1MDg2MjQuNTYuMC4w`}
+                  />
               )}
             </div>
-            {((selectedTab == pricingTabs.DataCenterProxies &&
-                    dspValue <= 5000) ||
-                (selectedTab == pricingTabs.ISPProxies &&
-                    ispProxyValue <= 5000) ||
-                (selectedTab == pricingTabs.ResidentialProxies &&
-                    resedentialInput <= 5000)) && (
-                <Button
-                    title="Buy Now"
-                    link={
-                      selectedTab == pricingTabs.ResidentialProxies
-                          ? "https://dashboard.residential.rayobyte.com/user-area/#/signup"
-                          : `https://dashboard.proxy.rayobyte.com/purchase?country=${
-                              selectedTab === pricingTabs.DataCenterProxies
-                                  ? dcpCountry
-                                  : selected
-                          }&category=${
-                              selectedTab === pricingTabs.DataCenterProxies
-                                  ? dspRadio === "semi-dedicated"
-                                      ? "semi-3"
-                                      : "dedicated"
-                                  : ispProxyInput.mainType === "dedicated"
-                                      ? "dedicated"
-                                      : "semi-3"
-                          }&quantity=${
-                              selectedTab === pricingTabs.DataCenterProxies
-                                  ? dspValue
-                                  : ispProxyValue
-                          }&billingCycle=${
-                              selectedTab === pricingTabs.DataCenterProxies
-                                  ? dspMonths === "oneMonthDisc"
-                                      ? "monthly"
-                                      : dspMonths === "threeMonthDisc"
-                                          ? "quarterly"
-                                          : dspMonths === "sixMonthDisc"
-                                              ? "semiannually"
-                                              : "annually"
-                                  : ispProxyInput.length === "oneMonthDisc"
-                                      ? "monthly"
-                                      : ispProxyInput.length === "threeMonthDisc"
-                                          ? "quarterly"
-                                          : ispProxyInput.length === "sixMonthDisc"
-                                              ? "semiannually"
-                                              : "annually"
-                          }&_gl=1%2a116hez4%2a_ga%2aNzExNzM2NzMxLjE2NzYzMTA5NzQ.%2a_ga_TK61YTK3F7%2aMTY3NzUwNzk2Ni4yNS4xLjE2Nzc1MDg2MjQuNTYuMC4w`
-                    }
-                />
-            )}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
   );
 };
 
