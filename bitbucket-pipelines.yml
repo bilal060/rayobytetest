@@ -1,0 +1,46 @@
+image: node:16
+
+pipelines:
+  custom:
+    plasmic_dev: 
+    - parallel:
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - npm install
+        - step:
+            name: Code linting
+            script:
+              - npm install eslint
+              - npx eslint .
+            caches:
+              - node
+              
+              
+    - step:
+          name: 'Deployment to rayobyte_com new instance on sprious-web-04 server'
+          deployment: plasmic-prod
+          clone:
+           enabled: false
+          trigger: 'manual'
+          script:
+             - pipe: atlassian/ssh-run:0.4.0
+               variables:
+                   SSH_USER: $USER
+                   SERVER: $RAY_IP
+                   COMMAND: 'bash deploy_plasmic.sh'
+  
+    export_out: 
+      - step:
+          name: 'Export static files only from the current step to rayobyte_com new instance on sprious-web-04 server and transition it to live state'
+          deployment: plasmic-prod
+          clone:
+           enabled: false
+          script:
+             - pipe: atlassian/ssh-run:0.4.0
+               variables:
+                   SSH_USER: $USER
+                   SERVER: $RAY_IP
+                   COMMAND: 'bash export_out.sh'
